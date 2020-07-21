@@ -1,42 +1,62 @@
-#!/usr/bin/env python
+import pyminc.volumes.factory as pyminc
+from skimage.draw import polygon2mask
+import numpy as np
+import pydicom
+import os
+from glob import glob
 import argparse
-from rhscripts.conversion import rtx_to_mnc
-from rhscripts.version import __show_version__
+
+def rtx_to_mnc(dcm_file,mnc_file,outdir):
+
+    mnc = pyminc.volumeFromFile(mnc_file)
+    d = pydicom.read_file(dcm_file)
+    for roival, rs in enumerate(d.ROIContourSequence):
+        print( outdir + '/RS_' +d.StructureSetROISequence[roival][0x3006, 0x0026].value.replace(" ", "_")+'.mnc')
+        if not hasattr(rs, 'ContourSequence'):
+            print("Skipping...")
+            continue
+        print( )
+        out = pyminc.volumeLikeFile(mnc_file, outdir + '/RS_' +d.StructureSetROISequence[roival][0x3006, 0x0026].value.replace(" ", "_")+'.mnc')
+        out.data[:] = 0.0
+        for cs in rs.ContourSequence:
+
+            data = cs.ContourData
+    
+            # Fill
+            voxel_coordinates_inplane = np.zeros((cs.NumberOfContourPoints,2))
+    
+            k = -1
+            for i in range(cs.NumberOfContourPoints):
+                j=i*3
+                xyz_world = [-data[j],-data[j+1],data[j+2]]
+                xyz_voxel = mnc.convertWorldToVoxel(xyz_world)
+                k = int(round(xyz_voxel[0]))
+    
+                # Fill
+                voxel_coordinates_inplane[i,:] = [xyz_voxel[1],xyz_voxel[2]] # this order for polygon2mask - reverse for opencv
+            current_slice_inner = np.zeros((mnc.getSizes()[1],mnc.getSizes()[2]),dtype=np.uint8)
+            
+            #assert data[:3] == data[-3:],"{} vs {}".format(data[:3],data[-3:])
+    
+            current_slice_inner = polygon2mask((mnc.getSizes()[1],mnc.getSizes()[2]),voxel_coordinates_inplane)
+            
+            out.data[k] += current_slice_inner
+        out.data = np.where(out.data % 2 == 0, 0, 1)
+        out.writeFile()
+        out.closeVolume()
 
 
-__scriptname__ = 'rtx2mnc'
-__version__ = '0.0.1'
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='RTX2MNC.')
+    parser.add_argument('RTX', help='Path to the DICOM RTX file', nargs='?')
+    parser.add_argument('MINC', help='Path to the MINC container file', nargs='?')
+    parser.add_argument('RTMINC', help='Output directory', nargs='?')
 
-##
-# RTX2MNC python script
-# VERSIONS:
-#  - 1.0.0 :: 2018-03-08 :: Added basic functionality working for one or more RT-files
-#  - 1.0.1 :: 2018-03-08 :: Added RT-name in MNC header
-#  - 1.0.2 :: 2018-04-10 :: BUG - slice location rounded incorrectly. Fixed.
-##
-# TODO:
-#  - Add check for MINC-file matches RTX dimensions and IDs
-##
+    args = parser.parse_args()
 
-parser = argparse.ArgumentParser(description='RTX2MNC.')
-parser.add_argument('RTX', help='Path to the DICOM RTX file', nargs='?')
-parser.add_argument('MINC', help='Path to the MINC container file', nargs='?')
-parser.add_argument('RTMINC', help='Path to the OUTPUT MINC RT file', nargs='?')
-parser.add_argument("--verbose", help="increase output verbosity", action="store_true")
-#parser.add_argument("--visualize", help="Show plot of slices for debugging", action="store_true")
-parser.add_argument("--copy_name", help="Copy the name of the RTstruct (defined in Mirada) to the tag dicom_0x0008:el_0x103e of the MNC file", action="store_true")
-parser.add_argument("--version", help="Print version", action="store_true")
+    if not args.RTX or not args.MINC or not args.RTMINC:
+        parser.print_help()
+        print('Too few arguments')
+        exit(-1)
 
-args = parser.parse_args()
-
-if args.version:
-	print('%s version: %s' % (__scriptname__,__version__))
-	__show_version__()
-	exit(-1)
-
-if not args.RTX or not args.MINC or not args.RTMINC:
-	parser.print_help()
-	print('Too few arguments')
-	exit(-1)
-
-rtx_to_mnc(args.RTX, args.MINC, args.RTMINC, args.verbose, args.copy_name)
+    rtx_to_mnc(args.RTX, args.MINC, args.RTMINC)
