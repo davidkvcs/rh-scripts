@@ -137,6 +137,27 @@ def get_modality(file):
     """
     return dicom.read_file(file, force = True).Modality
 
+def get_series_instance_uid(file):
+    """Get the study series UID of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).SeriesInstanceUID
+
+def get_rtx_referenced_series_instance_uid(file):
+    """Get which series instance UID the RTSTRUCT references
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).ReferencedFrameOfReferenceSequence[0].RTReferencedStudySequence[0].RTReferencedSeriesSequence[0].SeriesInstanceUID
+
+
 def send_data(folder, server=None, checkForEndings=True):
     """Send a dicom dataset to a dicom node
 
