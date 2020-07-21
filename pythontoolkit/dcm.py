@@ -57,6 +57,86 @@ def get_studydate(file):
     """
     return dicom.read_file(file).StudyDate
 
+def get_kvp(file):
+    """Get the KVP of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).KVP
+
+def get_age(file):
+    """Get the patient age of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).PatientAge
+
+def get_weight(file):
+    """Get the patient weight of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).PatientWeight
+
+def get_gender(file):
+    """Get the patient gender of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).PatientSex
+
+def get_dose(file):
+    """Get the radionuclide total dose of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadionuclideTotalDose
+
+def get_inj_time(file):#from pet dicom file - radiopharmaceutical info
+    """Get the radiopharmaceutical start time of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadiopharmaceuticalStartTime
+
+def get_scan_time(file):
+    """Get the acquisition time of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).AcquisitionTime
+
+def get_modality(file):
+    """Get the study modality of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file, force = True).Modality
+
 def send_data(folder, server=None, checkForEndings=True):
     """Send a dicom dataset to a dicom node
 
