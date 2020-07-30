@@ -9,6 +9,8 @@ INSTALL(PROGRAMS
   conversion.py
   utils.py
   dcm.py
+  kbq2suv_dgk.py
+  quick_plot.py
 
   DESTINATION rhscripts )
 
