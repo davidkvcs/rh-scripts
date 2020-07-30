@@ -13,9 +13,6 @@ import datetime
 import cv2
 from skimage.draw import polygon2mask
 import pydicom
-
-
-
 from rhscripts.utils import listdir_nohidden
 
 def findExtension(sourcedir,extensions = [".ima", ".IMA", ".dcm", ".DCM"]):
@@ -123,7 +120,6 @@ def dcm_to_mnc(folder,target='.',fname=None,dname=None,verbose=False,checkForFil
         print("Command %s" % cmd)
 
     os.system(cmd)
-
 
 def mnc_to_dcm(mncfile,dicomcontainer,dicomfolder,verbose=False,modify=False,description=None,study_id=None,checkForFileEndings=True):  
     """Convert a minc file to dicom
@@ -265,7 +261,6 @@ def mnc_to_dcm(mncfile,dicomcontainer,dicomfolder,verbose=False,modify=False,des
     if verbose:
         print("Output written to %s" % dicomfolder)
 
-
 def rtdose_to_mnc(dcmfile,mncfile):
     
     """Convert dcm file (RD dose distribution) to minc file
@@ -322,9 +317,9 @@ def rtx_to_mnc(dcm_file,mnc_file,outdir,verbose=False,copy_name=False):
     ----------
     dcmfile : string
         Path to the dicom file (RT struct)    
-    mnc_container_file : string
+    mnc__file : string
         Path to the minc file that is the container of the RT struct
-    mnc_output_file : string
+    outdir : string
         Path to the minc output file
     verbose : boolean, optional
         Default = Flase (if true, print info)
@@ -339,12 +334,14 @@ def rtx_to_mnc(dcm_file,mnc_file,outdir,verbose=False,copy_name=False):
     mnc = pyminc.volumeFromFile(mnc_file)
     d = pydicom.read_file(dcm_file)
     for roival, rs in enumerate(d.ROIContourSequence):
-        print( outdir + '/RS_' +d.StructureSetROISequence[roival][0x3006, 0x0026].value.replace(" ", "_")+'.mnc')
+        rtx_out_file = outdir + '/RS_' +d.StructureSetROISequence[roival][0x3006, 0x0026].value.replace(" ", "_")+'.mnc'
+        print( rtx_out_file)
+
         if not hasattr(rs, 'ContourSequence'):
             print("Skipping...")
             continue
         print( )
-        out = pyminc.volumeLikeFile(mnc_file, outdir + '/RS_' +d.StructureSetROISequence[roival][0x3006, 0x0026].value.replace(" ", "_")+'.mnc')
+        out = pyminc.volumeLikeFile(mnc_file, rtx_out_file)
         out.data[:] = 0.0
         for cs in rs.ContourSequence:
 
@@ -372,7 +369,10 @@ def rtx_to_mnc(dcm_file,mnc_file,outdir,verbose=False,copy_name=False):
         out.data = np.where(out.data % 2 == 0, 0, 1)
         out.writeFile()
         out.closeVolume()
-
+    old_file = os.path.join(os.path.dirname(mnc_file),'.mnc')
+    if os.path.isfile(old_file):
+        os.remove(old_file)
+    return rtx_out_file
 
 def hu2lac(infile,outfile,kvp=None,mrac=False,verbose=False):
 
@@ -421,7 +421,6 @@ def hu2lac(infile,outfile,kvp=None,mrac=False,verbose=False):
         print(cmd)
 
     os.system(cmd)
-
 
 def lac2hu(infile,outfile,kvp=None,mrac=False,verbose=False):
 
@@ -472,3 +471,11 @@ def lac2hu(infile,outfile,kvp=None,mrac=False,verbose=False):
         print(cmd)
     
     os.system(cmd)                 
+
+def mnc_to_numpy(mncpath, datatype = 'float64', swapaxes = True):
+    im          = pyminc.volumeFromFile(mncpath)
+    im_np       = np.array(im.data, dtype = datatype)
+    if swapaxes == True:
+        im_np       = np.swapaxes(np.swapaxes(im_np,0,1),1,2)
+    im.closeVolume()
+    return im_np
