@@ -107,6 +107,17 @@ def get_dose(file):
     """
     return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadionuclideTotalDose
 
+def get_half_life(file):
+    """Get the radionuclide half life of a dicom file
+
+    Parameters
+    ----------
+    file : string
+        Path to the dicom file
+    """
+    return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadionuclideHalfLife
+
+
 def get_inj_time(file):#from pet dicom file - radiopharmaceutical info
     """Get the radiopharmaceutical start time of a dicom file
 
