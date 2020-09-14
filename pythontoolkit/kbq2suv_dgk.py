@@ -19,7 +19,7 @@ def kbq2suv(petfile_dicom, petfile_mnc, clobber = False):
         print(petfile_suv_mnc_name+' file already exists and clobber = False')
     else: 
         #get time of injection 
-        inj_time = datetime.strptime(dcm.get_inj_time(petfile_dicom),'%H%M%S.%f')
+        inj_time = datetime.strptime(dcm.get_inj_time(petfile_dicom, out_format = 'str'),'%H%M%S.%f')
         
         #get injection dose
         inj_dose = dcm.get_dose(petfile_dicom)
@@ -31,7 +31,7 @@ def kbq2suv(petfile_dicom, petfile_mnc, clobber = False):
         pt_weight = dcm.get_weight(petfile_dicom) * 1000
         
         #get image acquisition time
-        acq_time = datetime.strptime(dcm.get_scan_time(petfile_dicom),'%H%M%S.%f')
+        acq_time = datetime.strptime(dcm.get_scan_time(petfile_dicom, out_format = 'str'),'%H%M%S.%f')
 
         #calculate time from injection of scan
         inj_to_acq_time_s = acq_time-inj_time
