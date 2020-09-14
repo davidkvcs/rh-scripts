@@ -11,6 +11,8 @@ INSTALL(PROGRAMS
   dcm.py
   kbq2suv_dgk.py
   quick_plot.py
+  get_meta_dat.py
+  minc_stats.py
 
   DESTINATION rhscripts )
 
