@@ -6,6 +6,7 @@ except ImportError:
     import dicom
 import configparser
 from rhscripts.conversion import findExtension
+from datetime import datetime
 
 def get_description(file):
     """Get the SeriesDescription of a dicom file
@@ -47,7 +48,7 @@ def get_patientname(file):
     """
     return dicom.read_file(file).PatientName
 
-def get_studydate(file):
+def get_studydate(file, out_format = 'date_time'):
     """Get the StudyDate of a dicom file
 
     Parameters
@@ -55,7 +56,10 @@ def get_studydate(file):
     file : string
         Path to the dicom file
     """
-    return dicom.read_file(file).StudyDate
+    if out_format == 'date_time':
+        return datetime.strptime(dicom.read_file(file).StudyDate,'%Y%M%d').date()
+    elif out_format == 'str':
+        return dicom.read_file(file).StudyDate
 
 def get_kvp(file):
     """Get the KVP of a dicom file
@@ -67,7 +71,7 @@ def get_kvp(file):
     """
     return dicom.read_file(file).KVP
 
-def get_age(file):
+def get_age(file, dat_type = 'int'):
     """Get the patient age of a dicom file
 
     Parameters
@@ -75,7 +79,10 @@ def get_age(file):
     file : string
         Path to the dicom file
     """
-    return dicom.read_file(file).PatientAge
+    if dat_type == 'int':
+        return int(dicom.read_file(file).PatientAge[:-1])
+    elif dat_type == 'str':
+        return dicom.read_file(file).PatientAge
 
 def get_weight(file):
     """Get the patient weight of a dicom file
@@ -85,7 +92,7 @@ def get_weight(file):
     file : string
         Path to the dicom file
     """
-    return dicom.read_file(file).PatientWeight
+    return int(dicom.read_file(file).PatientWeight)
 
 def get_gender(file):
     """Get the patient gender of a dicom file
@@ -105,7 +112,7 @@ def get_dose(file):
     file : string
         Path to the dicom file
     """
-    return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadionuclideTotalDose
+    return int(dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadionuclideTotalDose)
 
 def get_half_life(file):
     """Get the radionuclide half life of a dicom file
@@ -118,7 +125,7 @@ def get_half_life(file):
     return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadionuclideHalfLife
 
 
-def get_inj_time(file):#from pet dicom file - radiopharmaceutical info
+def get_inj_time(file,out_format = 'date_time'):#from pet dicom file - radiopharmaceutical info
     """Get the radiopharmaceutical start time of a dicom file
 
     Parameters
@@ -126,9 +133,12 @@ def get_inj_time(file):#from pet dicom file - radiopharmaceutical info
     file : string
         Path to the dicom file
     """
-    return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadiopharmaceuticalStartTime
+    if out_format == 'date_time':
+        return datetime.strptime(dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadiopharmaceuticalStartTime,'%H%M%S.%f')
+    elif out_format == 'str':
+        return dicom.read_file(file).RadiopharmaceuticalInformationSequence[0].RadiopharmaceuticalStartTime
 
-def get_scan_time(file):
+def get_scan_time(file,out_format = 'date_time'):
     """Get the acquisition time of a dicom file
 
     Parameters
@@ -136,7 +146,10 @@ def get_scan_time(file):
     file : string
         Path to the dicom file
     """
-    return dicom.read_file(file).AcquisitionTime
+    if out_format == 'date_time':
+        return datetime.strptime(dicom.read_file(file).AcquisitionTime,'%H%M%S.%f')
+    elif out_format == 'str':
+        return dicom.read_file(file).AcquisitionTime
 
 def get_modality(file):
     """Get the study modality of a dicom file
